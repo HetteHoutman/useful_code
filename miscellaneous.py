@@ -1,4 +1,9 @@
+import json
+import sys
+from types import SimpleNamespace
+
 import numpy as np
+
 
 # TODO possible split functions between different files if this file gets too long/general
 
@@ -28,6 +33,7 @@ def make_great_circle_points(start, end, n):
     distances = np.linspace(0, dist, n)
     great_circle = np.array(g.npts(*start, *end, n, initial_idx=0, terminus_idx=0)).T
     return great_circle, distances
+
 
 def make_custom_traj(sample_points):
     """
@@ -60,11 +66,55 @@ def convert_to_ukv_coords(x, y, in_crs, out_crs):
     out_x, out_y = out_crs.transform_point(x, y, in_crs)
     return out_x + 360, out_y
 
+
 def convert_list_to_ukv_coords(x_list, y_list, in_crs, out_crs):
     """list version of convert_to_ukv_coords"""
     return np.array([convert_to_ukv_coords(x, y, in_crs, out_crs) for x, y in zip(x_list, y_list)])
+
 
 def index_selector(desired_value, array):
     """returns the index of the value in array that is closest to desired_value"""
     return (np.abs(array - desired_value)).argmin()
 
+
+def load_settings(file):
+    """
+    loads the settings for a TLW case from json file
+    Parameters
+    ----------
+    file : str
+        the .json file
+
+    Returns
+    -------
+    SimpleNamespace
+        containing settings
+    """
+    with open(file) as f:
+        settings = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
+
+    return settings
+
+
+def check_argv_num(argv, num_args, message=None):
+    """
+    Checks whether the number of arguments given through the command line is the correct number for the file
+    Parameters
+    ----------
+    argv : list
+        sys.argv
+    num_args : int
+        the required number of arguments for the file
+    message : str
+        message to append to Exception raised
+
+    Returns
+    -------
+
+    """
+    text = f'Gave {len(sys.argv) - 1} arguments but this file takes exactly {num_args} '
+    if message is not None:
+        text += message
+
+    if len(argv) - 1 != num_args:
+        raise Exception(text)
