@@ -1,3 +1,5 @@
+# this file contains functions for processing pp files
+
 def data_from_pp_filename(filename):
     """
     # TODO look up proper name for forecast time
