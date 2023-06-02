@@ -2,7 +2,6 @@
 import matplotlib.colors as colors
 import numpy as np
 
-
 def centred_cnorm(data):
     """
     use for "norm" kwarg in plt for a colormap normalisation that is centred around zero.
