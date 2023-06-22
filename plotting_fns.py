@@ -3,6 +3,7 @@ import matplotlib.colors as colors
 import numpy as np
 
 def centred_cnorm(data):
+    # TODO vgm bestaat hier al een plt functie voor
     """
     use for "norm" kwarg in plt for a colormap normalisation that is centred around zero.
     Parameters
