@@ -27,7 +27,7 @@ def make_great_circle_points(start, end, n):
         of shape (n). corresponding distances of points along the great circle from start
     """
     from pyproj import Geod
-    # TODO copy that web source and change n to desired km resolution?
+    # TODO copy that web source and change n to desired km resolution? https://gis.stackexchange.com/questions/47/what-tools-in-python-are-available-for-doing-great-circle-distance-line-creati
     g = Geod(ellps='WGS84')
     _, _, dist = g.inv(*start, *end)
     distances = np.linspace(0, dist, n)
@@ -90,6 +90,7 @@ def load_settings(file):
     SimpleNamespace
         containing settings
     """
+    # TODO add date as fields to json files
     with open(file) as f:
         settings = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
 
