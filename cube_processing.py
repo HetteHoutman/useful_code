@@ -61,6 +61,12 @@ def add_grid_latlon_to_cube(cube, grid_latlon):
     cube.add_aux_coord(grid_latlon['lat_coord'], [ilat, ilon])
     cube.add_aux_coord(grid_latlon['lon_coord'], [ilat, ilon])
 
+def add_pressure_to_cube(cube, pcoord):
+    ilev = get_coord_index(cube, 'model_level_number')
+    ilat = get_coord_index(cube, 'latitude')
+    ilon = get_coord_index(cube, 'longitude')
+    cube.add_aux_coord(pcoord, [ilev, ilat, ilon])
+
 
 def get_grid_latlon_from_rotated(cube):
     """from P Clarks code"""
@@ -172,7 +178,7 @@ def cube_slice(*cubes, bottom_left=None, top_right=None, height=None, force_lati
             raise Exception('you gave heights but the cube is not 3 dimensional')
 
         if force_latitude:
-            # ... ensures only the last two dimensions are sliced regardless of how many are in front of them
+            # "..." ensures only the last two dimensions are sliced regardless of how many are in front of them
             new_cubes.append(cube[..., lat_idxs[0], lon_idxs[0]: lon_idxs[1] + 1])
         else:
             new_cubes.append(cube[..., lat_idxs[0]: lat_idxs[1] + 1, lon_idxs[0]: lon_idxs[1] + 1])
