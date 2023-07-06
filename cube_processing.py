@@ -4,6 +4,7 @@ import time
 
 import cartopy.crs as ccrs
 import iris
+from iris.experimental.stratify import relevel
 import numpy as np
 
 from miscellaneous import make_custom_traj, convert_to_ukv_coords
@@ -102,13 +103,14 @@ def get_grid_latlon_from_rotated(cube):
     return grid_latlon
 
 
-def cube_at_single_level(cube, map_height, bottomleft=None, topright=None):
+def cube_at_single_level(cube, level, bottomleft=None, topright=None, coord='altitude'):
     """
     returns the cube at a selected level_height and between bottom left and top right bounds
     Parameters
     ----------
+    coord
     cube
-    map_height
+    level
     bottomleft : tuple
         (true) lon/lat for the bottom left point of the map
     topright : tuple
@@ -125,9 +127,7 @@ def cube_at_single_level(cube, map_height, bottomleft=None, topright=None):
         cube = cube.intersection(grid_latitude=(bl_model[1], tr_model[1]),
                                  grid_longitude=(bl_model[0], tr_model[0]))
 
-    # TODO change level_height to altitude
-    height_index = cube.coord('level_height').nearest_neighbour_index(map_height)
-    single_level = cube[height_index]
+    single_level = relevel(cube, cube.coords(coord)[0], [level])
     return single_level
 
 
@@ -187,7 +187,7 @@ def cube_slice(*cubes, bottom_left=None, top_right=None, height=None, force_lati
 
 
 def check_level_heights(q, t):
-    """check whether q and Temperature cubes have same level heights and adjust if necessary."""
+    """check whether q (or any other cube, like w) and Temperature cubes have same level heights and adjust if necessary."""
     if q.coord('level_height').points[0] == t.coord('level_height').points[0]:
         pass
     elif q.coord('level_height').points[1] == t.coord('level_height').points[0]:
