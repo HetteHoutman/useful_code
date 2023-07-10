@@ -4,6 +4,7 @@ import time
 
 import cartopy.crs as ccrs
 import iris
+from iris.analysis.cartography import unrotate_pole
 from iris.experimental.stratify import relevel
 import numpy as np
 
@@ -62,6 +63,24 @@ def add_grid_latlon_to_cube(cube, grid_latlon):
     cube.add_aux_coord(grid_latlon['lat_coord'], [ilat, ilon])
     cube.add_aux_coord(grid_latlon['lon_coord'], [ilat, ilon])
 
+
+def add_true_latlon_coords(*cubes):
+    """equivalent of P Clarks code above but much quicker"""
+    for cube in cubes:
+        ilat = get_coord_index(cube, 'grid_latitude')
+        ilon = get_coord_index(cube, 'grid_longitude')
+
+        lons, lats = unrotate_pole(
+            *np.meshgrid(cube.coord('grid_longitude').points, cube.coord('grid_latitude').points),
+            177.5, 37.5)
+
+        lon_coord = iris.coords.AuxCoord(points=lons, standard_name='longitude')
+        lat_coord = iris.coords.AuxCoord(points=lats, standard_name='latitude')
+
+        cube.add_aux_coord(lon_coord, [ilat, ilon])
+        cube.add_aux_coord(lat_coord, [ilat, ilon])
+
+
 def add_pressure_to_cube(cube, pcoord):
     ilev = get_coord_index(cube, 'model_level_number')
     ilat = get_coord_index(cube, 'latitude')
@@ -119,6 +138,7 @@ def cube_at_single_level(cube, level, bottomleft=None, topright=None, coord='alt
     -------
 
     """
+    # TODO make it possible to pass multiple cubes
     if bottomleft is not None and topright is not None:
         crs_latlon = ccrs.PlateCarree()
         crs_rotated = cube.coord('grid_latitude').coord_system.as_cartopy_crs()
@@ -315,7 +335,6 @@ def add_dist_coord(dists, *cubes):
     dist_coord = iris.coords.AuxCoord(dists / 1000, long_name='distance_from_start', units='km')
     for cube in cubes:
         cube.add_aux_coord(dist_coord, data_dims=1)
-    return cubes
 
 
 def add_orography(orography_cube, *cubes):
@@ -329,5 +348,3 @@ def add_orography(orography_cube, *cubes):
                            (get_coord_index(cube, 'grid_latitude'), get_coord_index(cube, 'grid_longitude')))
         cube.add_aux_factory(fac)
     del orog_coord
-
-    return cubes
