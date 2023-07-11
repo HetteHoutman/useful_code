@@ -124,7 +124,7 @@ def get_grid_latlon_from_rotated(cube):
 
 def cube_at_single_level(cube, level, bottomleft=None, topright=None, coord='altitude'):
     """
-    returns the cube at a selected level_height and between bottom left and top right bounds
+    returns the cube at a selected vertical coordinate level and between bottom left and top right bounds
     Parameters
     ----------
     coord
