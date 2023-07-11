@@ -348,3 +348,16 @@ def add_orography(orography_cube, *cubes):
                            (get_coord_index(cube, 'grid_latitude'), get_coord_index(cube, 'grid_longitude')))
         cube.add_aux_factory(fac)
     del orog_coord
+
+
+def create_latlon_cube(s, n=500):
+    lat_bounds = [s.satellite_bottomleft[1], s.satellite_topright[1]]
+    lon_bounds = [s.satellite_bottomleft[0], s.satellite_topright[0]]
+    lat_coord = iris.coords.DimCoord(np.linspace(*lat_bounds, n), standard_name='latitude', units='degrees')
+    lon_coord = iris.coords.DimCoord(np.linspace(*lon_bounds, n), standard_name='longitude', units='degrees')
+    empty = iris.cube.Cube(np.empty((n, n)), dim_coords_and_dims=[(lat_coord, 0), (lon_coord, 1)])
+    new_cs = iris.coord_systems.GeogCS(iris.fileformats.pp.EARTH_RADIUS)
+    empty.coord(axis='x').coord_system = new_cs
+    empty.coord(axis='y').coord_system = new_cs
+
+    return empty
