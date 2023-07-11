@@ -119,3 +119,24 @@ def check_argv_num(argv, num_args, message=None):
 
     if len(argv) - 1 != num_args:
         raise Exception(text)
+
+
+def create_bins(range, bin_width):
+    """
+    Creates edges of bins and mid-bin values within a range given an approximate bin width.
+    Parameters
+    ----------
+    range : tuple
+        lower and upper bounds of the range
+    bin_width : float
+
+
+    Returns
+    -------
+
+    """
+    bins = np.linspace(range[0], range[1], int(np.ceil((range[1] - range[0]) / bin_width) + 1))
+    vals = 0.5 * (bins[1:] + bins[:-1])
+    return bins, vals
+
+
