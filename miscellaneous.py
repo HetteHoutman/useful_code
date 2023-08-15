@@ -90,7 +90,7 @@ def load_settings(file):
     SimpleNamespace
         containing settings
     """
-    # TODO get rid of namespace! globals().update(settings)
+    # TODO get rid of namespace globals().update(settings)
     with open(file) as f:
         settings = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
 
