@@ -121,7 +121,7 @@ def check_argv_num(argv, num_args, message=None):
         raise Exception(text)
 
 
-def get_bounds(region):
+def get_bounds(region, root):
     """
     returns the bottom left and top right lon/lat coordinates for the satellite image and map
     Parameters
@@ -133,7 +133,7 @@ def get_bounds(region):
     -------
 
     """
-    with open('../tephi_plot/regions/' + region + '.json') as f:
+    with open(root + region + '.json') as f:
         bounds_dict = json.loads(f.read())
 
     sat_bl, sat_tr = bounds_dict["sat_bounds"][:2], bounds_dict["sat_bounds"][2:]
