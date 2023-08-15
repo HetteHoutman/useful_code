@@ -90,7 +90,7 @@ def load_settings(file):
     SimpleNamespace
         containing settings
     """
-    # TODO add date as fields to json files
+    # TODO get rid of namespace! globals().update(settings)
     with open(file) as f:
         settings = json.load(f, object_hook=lambda d: SimpleNamespace(**d))
 
@@ -121,6 +121,27 @@ def check_argv_num(argv, num_args, message=None):
         raise Exception(text)
 
 
+def get_bounds(region):
+    """
+    returns the bottom left and top right lon/lat coordinates for the satellite image and map
+    Parameters
+    ----------
+    region : str
+        the region for which the bounds should be returned
+
+    Returns
+    -------
+
+    """
+    with open('../tephi_plot/regions/' + region + '.json') as f:
+        bounds_dict = json.loads(f.read())
+
+    sat_bl, sat_tr = bounds_dict["sat_bounds"][:2], bounds_dict["sat_bounds"][2:]
+    map_bl, map_tr = bounds_dict["map_bounds"][:2], bounds_dict["map_bounds"][2:]
+
+    return sat_bl, sat_tr, map_bl, map_tr
+
+
 def create_bins(range, bin_width):
     """
     Creates edges of bins and mid-bin values within a range given an approximate bin width.
@@ -138,5 +159,3 @@ def create_bins(range, bin_width):
     bins = np.linspace(range[0], range[1], int(np.ceil((range[1] - range[0]) / bin_width) + 1))
     vals = 0.5 * (bins[1:] + bins[:-1])
     return bins, vals
-
-
