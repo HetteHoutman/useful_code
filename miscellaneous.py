@@ -136,11 +136,12 @@ def get_bounds(region, root):
     with open(root + region + '.json') as f:
         bounds_dict = json.loads(f.read())
 
-    sat_bl, sat_tr = bounds_dict["sat_bounds"][:2], bounds_dict["sat_bounds"][2:]
-    map_bl, map_tr = bounds_dict["map_bounds"][:2], bounds_dict["map_bounds"][2:]
+    # sat_bl, sat_tr = bounds_dict["sat_bounds"][:2], bounds_dict["sat_bounds"][2:]
+    # map_bl, map_tr = bounds_dict["map_bounds"][:2], bounds_dict["map_bounds"][2:]
+    #
+    # return sat_bl, sat_tr, map_bl, map_tr
 
-    return sat_bl, sat_tr, map_bl, map_tr
-
+    globals().update(bounds_dict)
 
 def create_bins(range, bin_width):
     """
