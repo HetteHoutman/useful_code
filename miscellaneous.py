@@ -141,7 +141,8 @@ def get_bounds(region, root):
     #
     # return sat_bl, sat_tr, map_bl, map_tr
 
-    globals().update(bounds_dict)
+    # globals().update(bounds_dict)
+    return bounds_dict
 
 def create_bins(range, bin_width):
     """
