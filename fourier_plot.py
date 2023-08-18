@@ -7,7 +7,7 @@ from fourier import recip_space
 
 
 def plot_pspec_polar(wnum_bins, theta_bins, radial_pspec_array, scale='linear', xlim=None, vmin=None, vmax=None,
-                     min_lambda=3, max_lambda=20):
+                     min_lambda=3, max_lambda=20, title='title'):
     if vmin is not None and vmax is not None:
         plt.pcolormesh(wnum_bins, theta_bins, radial_pspec_array, norm=mpl.colors.LogNorm(vmin=vmin, vmax=vmax))
         plt.colorbar(extend='both')
@@ -24,6 +24,7 @@ def plot_pspec_polar(wnum_bins, theta_bins, radial_pspec_array, scale='linear', 
 
     plt.xlabel(r"$|\mathbf{k}|$" + ' / ' + r"$\rm{km}^{-1}$")
     plt.ylabel(r'$\theta$')
+    plt.title(title)
 
 
 def plot_interp_pcolormesh(pspec_2d, wnum_bins_interp, theta_bins_interp, interp_values):
@@ -33,7 +34,6 @@ def plot_interp_pcolormesh(pspec_2d, wnum_bins_interp, theta_bins_interp, interp
     plt.colorbar(extend='both')
     plt.xlabel(r"$|\mathbf{k}|$" + ' / ' + r"$\rm{km}^{-1}$")
     plt.ylabel(r'$\theta$')
-    plt.show()
 
 
 def plot_interp_contour(grid, interp_values):
@@ -42,7 +42,7 @@ def plot_interp_contour(grid, interp_values):
     plt.colorbar(con, extend='both')
     plt.xlabel(r"$|\mathbf{k}|$" + ' / ' + r"$\rm{km}^{-1}$")
     plt.ylabel(r'$\theta$')
-    plt.show()
+
 
 def plot_ang_pspec(pspec_array, vals, wavelength_ranges):
     plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.rainbow(np.linspace(0, 1, len(pspec_array))))
@@ -57,9 +57,9 @@ def plot_ang_pspec(pspec_array, vals, wavelength_ranges):
     plt.xlabel(r'$\theta$ (deg)')
     plt.legend(loc='lower left')
     plt.grid()
-    plt.show()
 
-def plot_radial_pspec(pspec_array, vals, theta_ranges, dom_wnum, min_lambda=3, max_lambda=20):
+
+def plot_radial_pspec(pspec_array, vals, theta_ranges, dom_wnum, min_lambda=3, max_lambda=20, title='title'):
     plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.rainbow(np.linspace(0, 1, len(pspec_array))))
     for i, pspec in enumerate(pspec_array):
         plt.loglog(vals, pspec, label=f'{theta_ranges[i]}' + r'$ \leq \theta < $' + f'{theta_ranges[i + 1]}')
@@ -77,9 +77,11 @@ def plot_radial_pspec(pspec_array, vals, theta_ranges, dom_wnum, min_lambda=3, m
     plt.ylabel(r"$P(|\mathbf{k}|)$")
     plt.ylim(ymin, ymax)
     plt.legend(loc='lower left')
+    plt.title(title)
     plt.tight_layout()
 
-def plot_2D_pspec(bandpassed_pspec, Lx, Ly, wavelength_contours=None):
+
+def plot_2D_pspec(bandpassed_pspec, Lx, Ly, wavelength_contours=None, title='title'):
     xlen = bandpassed_pspec.shape[1]
     ylen = bandpassed_pspec.shape[0]
 
@@ -106,10 +108,11 @@ def plot_2D_pspec(bandpassed_pspec, Lx, Ly, wavelength_contours=None):
     ax2.set_xlim(-2, 2)
     ax2.set_ylim(-2, 2)
     fig2.colorbar(im, extend='both')
+    plt.title(title)
     plt.tight_layout()
 
 
-def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, min_lambda=3, max_lambda=20):
+def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, min_lambda=3, max_lambda=20, title='title'):
     if inverse_fft:
         fig, (ax1, ax3) = plt.subplots(1, 2, sharey=True)
     else:
@@ -142,4 +145,5 @@ def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, m
                    extent=physical_extent,
                    cmap='gray')
 
+    plt.suptitle(title)
     plt.tight_layout()
