@@ -99,13 +99,16 @@ def extract_distances(lats, lons):
     return Lx / 1000, Ly / 1000
 
 
-def make_stripes(X, Y, wavelength, angle):
+def make_stripes(X, Y, wavelength, angle, wiggle=0, wiggle_wavelength=0):
     angle += 90
     angle = np.deg2rad(angle)
-    return np.sin(2 * np.pi * (X * np.cos(angle) + Y * np.sin(angle)) / wavelength)
+    rot_x = X * np.cos(angle) + Y * np.sin(angle)
+    rot_y = X * np.sin(-angle) + Y * np.cos(angle)
+    wiggle *= np.sin(2 * np.pi * rot_y / wiggle_wavelength)
+    return np.sin((2 * np.pi * rot_x + wiggle) / wavelength)
 
 
-def stripey_test(orig, Lx, Ly, wavelens, angles):
+def stripey_test(orig, Lx, Ly, wavelens, angles, wiggle=0, wiggle_wavelength=0):
     """
     Returns an image containing pure sine waves of chosen wavelength and angle with the same shape and value range as
     the given original image.
@@ -134,7 +137,7 @@ def stripey_test(orig, Lx, Ly, wavelens, angles):
     total = np.zeros(X.shape)
 
     for wavelen, angle in zip(wavelens, angles):
-        total += make_stripes(X, Y, wavelen, angle)
+        total += make_stripes(X, Y, wavelen, angle, wiggle=wiggle, wiggle_wavelength=wiggle_wavelength)
 
     # this ensures the stripes are roughly in the same range as the input data
     middle = (orig.max() + orig.min()) / 2
