@@ -105,14 +105,15 @@ def plot_2D_pspec(bandpassed_pspec, Lx, Ly, wavelength_contours=None, title='tit
     ax2.set_title('2D Power Spectrum')
     ax2.set_xlabel(r"$k_x$" + ' / ' + r"$\rm{km}^{-1}$")
     ax2.set_ylabel(r"$k_y$" + ' / ' + r"$\rm{km}^{-1}$")
-    ax2.set_xlim(-2, 2)
-    ax2.set_ylim(-2, 2)
+    # ax2.set_xlim(-2, 2)
+    # ax2.set_ylim(-2, 2)
     fig2.colorbar(im, extend='both')
     plt.title(title)
     plt.tight_layout()
 
 
-def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, min_lambda=3, max_lambda=20, title='title'):
+def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, min_lambda=3, max_lambda=20,
+                      title='title'):
     if inverse_fft:
         fig, (ax1, ax3) = plt.subplots(1, 2, sharey=True)
     else:
@@ -146,4 +147,20 @@ def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, m
                    cmap='gray')
 
     plt.suptitle(title)
+    plt.tight_layout()
+
+
+def plot_corr(coll_corr, K, L):
+    fig2, ax2 = plt.subplots(1, 1)
+    pixel_k = K[0, 1] - K[0, 0]
+    pixel_l = L[1, 0] - L[0, 0]
+    recip_extent = [0, K.max() + pixel_k / 2, L.min() - pixel_l / 2, L.max() + pixel_l / 2]
+
+    im = ax2.imshow(coll_corr, extent=recip_extent, interpolation='none')
+
+    ax2.set_xlabel(r"$k_x$" + ' / ' + r"$\rm{km}^{-1}$")
+    ax2.set_ylabel(r"$k_y$" + ' / ' + r"$\rm{km}^{-1}$")
+    ax2.set_xlim(0, 2)
+    ax2.set_ylim(-2, 2)
+    fig2.colorbar(im, extend='both')
     plt.tight_layout()
