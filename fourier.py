@@ -2,6 +2,9 @@ import numpy as np
 import pyproj
 from scipy import stats
 from scipy.interpolate import griddata
+from skimage.morphology.footprints import ellipse
+from skimage.transform import rotate
+
 
 from miscellaneous import create_bins
 
@@ -275,3 +278,37 @@ def apply_wnum_bounds(polar_pspec, wnum_vals, wnum_bins, wlen_range):
     mask = (min_mask & max_mask)
 
     return polar_pspec[:, mask], wnum_vals[mask]
+
+
+def correlate(a1, b1):
+    a = a1.copy()
+    b = b1.copy()
+
+    assert a.shape == b.shape
+
+    num = np.sum((a - a.mean()) * (b - b.sum()))
+
+    return num
+
+
+def correlate_ellipse(pspec, angles, shape):
+    """shape has to be longer in y direction"""
+    correlation_array = np.zeros_like(pspec.data)
+
+    # loop over elements
+    for iy, ix in np.ndindex(pspec.shape):
+        # only consider points within lambda-range
+        if not pspec.mask[iy, ix]:
+            # rotate according to theta
+            ell = np.pad(ellipse(*shape), ((0, 0), (shape[1] - shape[0], shape[1] - shape[0])))
+            ell = rotate(ell, 90 - angles[iy, ix], resize=False)
+
+            # select correct sub-matrix around pixel to correlate with
+            half_y_len = ell.shape[0] // 2
+            half_x_len = ell.shape[1] // 2
+            sub_matrix = pspec.data[iy - half_y_len: iy + half_y_len + 1, ix - half_x_len: ix + half_x_len + 1]
+
+            # correlate and assign to pixel
+            correlation_array[iy, ix] = correlate(sub_matrix, ell / ell.sum())
+
+    return np.ma.masked_where(pspec.mask, correlation_array)
