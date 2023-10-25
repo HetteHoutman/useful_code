@@ -6,6 +6,7 @@ import cartopy.crs as ccrs
 import iris
 from iris.analysis.cartography import unrotate_pole
 from iris.experimental.stratify import relevel
+from iris.fileformats.pp import EARTH_RADIUS
 import numpy as np
 
 from miscellaneous import make_custom_traj, convert_to_ukv_coords
@@ -362,7 +363,7 @@ def create_latlon_cube(sat_bl, sat_tr, n=500):
 
     empty = iris.cube.Cube(np.empty((n, n)), dim_coords_and_dims=[(lat_coord, 0), (lon_coord, 1)])
 
-    new_cs = iris.coord_systems.GeogCS(iris.fileformats.pp.EARTH_RADIUS)
+    new_cs = iris.coord_systems.GeogCS(EARTH_RADIUS)
     empty.coord(axis='x').coord_system = new_cs
     empty.coord(axis='y').coord_system = new_cs
 
