@@ -40,11 +40,10 @@ def recip_space(Lx, Ly, shape):
     l = 2 * np.pi * np.fft.fftfreq(ylen, d=Ly / ylen)
 
     # do fft shift
-    K, L = np.meshgrid(np.roll(k, k.shape[0] // 2), np.roll(l, l.shape[0] // 2))
+    K, L = np.meshgrid(np.roll(k, k.shape[0] // 2), np.roll(l, l.shape[0] // 2)[::-1])
 
     dist_array = np.sqrt(K ** 2 + L ** 2)
-    thetas = -np.rad2deg(np.arctan2(K, L)) + 180
-    thetas %= 180
+    thetas = np.rad2deg(np.arctan2(K, L)) % 180
     return K, L, dist_array, thetas
 
 
