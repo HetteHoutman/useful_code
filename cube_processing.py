@@ -122,33 +122,37 @@ def get_grid_latlon_from_rotated(cube):
     return grid_latlon
 
 
-def cube_at_single_level(cube, level, bottomleft=None, topright=None, coord='altitude'):
+def cube_at_single_level(level, *cubes, bottomleft=None, topright=None, coord='altitude'):
     """
-    returns the cube at a selected vertical coordinate level and between bottom left and top right bounds
+    returns the cubes at a selected vertical coordinate level and between bottom left and top right bounds
     Parameters
     ----------
-    coord
-    cube
+    cubes
     level
     bottomleft : tuple
         (true) lon/lat for the bottom left point of the map
     topright : tuple
         (true) lon/lat for the top right point of the map
+    coord
     Returns
     -------
 
     """
-    # TODO make it possible to pass multiple cubes
-    if bottomleft is not None and topright is not None:
-        crs_latlon = ccrs.PlateCarree()
-        crs_rotated = cube.coord('grid_latitude').coord_system.as_cartopy_crs()
-        bl_model = crs_rotated.transform_point(bottomleft[0], bottomleft[1], crs_latlon)
-        tr_model = crs_rotated.transform_point(topright[0], topright[1], crs_latlon)
-        cube = cube.intersection(grid_latitude=(bl_model[1], tr_model[1]),
-                                 grid_longitude=(bl_model[0], tr_model[0]))
+    single_level_cubes = []
 
-    single_level = relevel(cube, cube.coords(coord)[0], [level])
-    return single_level
+    for cube in cubes:
+
+        if bottomleft is not None and topright is not None:
+            crs_latlon = ccrs.PlateCarree()
+            crs_rotated = cube.coord('grid_latitude').coord_system.as_cartopy_crs()
+            bl_model = crs_rotated.transform_point(bottomleft[0], bottomleft[1], crs_latlon)
+            tr_model = crs_rotated.transform_point(topright[0], topright[1], crs_latlon)
+            cube = cube.intersection(grid_latitude=(bl_model[1], tr_model[1]),
+                                     grid_longitude=(bl_model[0], tr_model[0]))
+
+        single_level_cubes.append(relevel(cube, cube.coords(coord)[0], [level]))
+
+    return single_level_cubes
 
 
 def cube_slice(*cubes, bottom_left=None, top_right=None, height=None, force_latitude=False):
