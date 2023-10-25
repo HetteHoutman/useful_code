@@ -156,3 +156,20 @@ def create_bins(range, bin_width):
     bins = np.linspace(range[0], range[1], int(np.ceil((range[1] - range[0]) / bin_width) + 1))
     vals = 0.5 * (bins[1:] + bins[:-1])
     return bins, vals
+
+
+def create_bins_from_midpoints(midpoints_array):
+    """
+
+    Parameters
+    ----------
+    midpoints_array : np.array
+        requires evenly spaced points in the array
+
+    Returns
+    -------
+
+    """
+    bin_width = midpoints_array[1] - midpoints_array[0]
+    bins = np.linspace(midpoints_array[0] - bin_width/2, midpoints_array[-1] + bin_width / 2, len(midpoints_array) + 1)
+    return bins
