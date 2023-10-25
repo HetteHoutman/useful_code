@@ -1,9 +1,9 @@
-import matplotlib.pyplot as plt
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import ticker, colors
 
-from fourier import recip_space
+from miscellaneous import create_bins_from_midpoints
 
 
 def plot_pspec_polar(wnum_bins, theta_bins, radial_pspec_array, scale='linear', xlim=None, vmin=None, vmax=None,
@@ -81,33 +81,21 @@ def plot_radial_pspec(pspec_array, vals, theta_ranges, dom_wnum, min_lambda=3, m
     plt.tight_layout()
 
 
-def plot_2D_pspec(bandpassed_pspec, Lx, Ly, wavelength_contours=None, title='title'):
-    xlen = bandpassed_pspec.shape[1]
-    ylen = bandpassed_pspec.shape[0]
+def plot_2D_pspec(bandpassed_pspec, K, L, wavelengths, wavelength_contours=None, title='title'):
 
     fig2, ax2 = plt.subplots(1, 1)
-    # TODO change to pcolormesh? might be useful in search for maximum
-    max_k = xlen // 2 * 2 * np.pi / Lx
-    max_l = ylen // 2 * 2 * np.pi / Ly
-    pixel_k = 2 * max_k / xlen
-    pixel_l = 2 * max_l / ylen
-    recip_extent = [-max_k - pixel_k / 2, max_k + pixel_k / 2, -max_l - pixel_l / 2, max_l + pixel_l / 2]
-
-    im = ax2.imshow(bandpassed_pspec.data, extent=recip_extent, interpolation='none',
-                    norm=mpl.colors.LogNorm(vmin=bandpassed_pspec.min(), vmax=bandpassed_pspec.max()))
+    kbins = create_bins_from_midpoints(K[0])
+    lbins = create_bins_from_midpoints(L[:,0])
+    pcol = ax2.pcolormesh(kbins, lbins, bandpassed_pspec.data, norm=mpl.colors.LogNorm(vmin=bandpassed_pspec.min(), vmax=bandpassed_pspec.max()))
 
     if wavelength_contours:
-        K, L, dist_array, thetas = recip_space(Lx, Ly, bandpassed_pspec.shape)
-        wavelengths = 2 * np.pi / dist_array
         con = ax2.contour(K, L, wavelengths, levels=wavelength_contours, colors=['k'], linestyles=['--'])
         ax2.clabel(con)
 
     ax2.set_title('2D Power Spectrum')
     ax2.set_xlabel(r"$k_x$" + ' / ' + r"$\rm{km}^{-1}$")
     ax2.set_ylabel(r"$k_y$" + ' / ' + r"$\rm{km}^{-1}$")
-    # ax2.set_xlim(-2, 2)
-    # ax2.set_ylim(-2, 2)
-    fig2.colorbar(im, extend='both')
+    fig2.colorbar(pcol, extend='both')
     plt.title(title)
     plt.tight_layout()
 
@@ -152,11 +140,10 @@ def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, m
 
 def plot_corr(coll_corr, K, L):
     fig2, ax2 = plt.subplots(1, 1)
-    pixel_k = K[0, 1] - K[0, 0]
-    pixel_l = L[1, 0] - L[0, 0]
-    recip_extent = [0, K.max() + pixel_k / 2, L.min() - pixel_l / 2, L.max() + pixel_l / 2]
+    kbins = create_bins_from_midpoints(K[0])
+    lbins = create_bins_from_midpoints(L[:,0])
 
-    im = ax2.imshow(coll_corr, extent=recip_extent, interpolation='none')
+    im = ax2.pcolormesh(kbins[kbins.size // 2 - 1:], lbins, coll_corr)
 
     ax2.set_xlabel(r"$k_x$" + ' / ' + r"$\rm{km}^{-1}$")
     ax2.set_ylabel(r"$k_y$" + ' / ' + r"$\rm{km}^{-1}$")
