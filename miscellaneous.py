@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from types import SimpleNamespace
 
@@ -97,6 +98,10 @@ def load_settings(file):
     return settings
 
 
+def get_datetime_from_settings(settings):
+    return f'{settings.year}-{settings.month:02d}-{settings.day:02d}_{settings.h}'
+
+
 def check_argv_num(argv, num_args, message=None):
     """
     Checks whether the number of arguments given through the command line is the correct number for the file
@@ -137,6 +142,58 @@ def get_region_var(var, region, root):
         bounds_dict = json.loads(f.read())
 
     return bounds_dict[var]
+
+
+def get_sat_map_bltr(region, region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
+    """
+    gives the bottom left and top right points of the "map" and "satellite" plots
+    Parameters
+    ----------
+    region
+    region_root
+
+    Returns
+    -------
+
+    """
+    sat_bounds = get_region_var("sat_bounds", region, region_root)
+    satellite_bottomleft, satellite_topright = sat_bounds[:2], sat_bounds[2:]
+    map_bounds = get_region_var("map_bounds", region, region_root)
+    map_bottomleft, map_topright = map_bounds[:2], map_bounds[2:]
+
+    return satellite_bottomleft, satellite_topright, map_bottomleft, map_topright
+
+
+def make_title_and_save_path(datetime, region, data_source_string, test, k2, smoothed, mag_filter, use_sim_sat=True):
+    my_title = f'{datetime}_{region}_{data_source_string}'
+
+    save_path = f'plots/{datetime}/{region}/'
+
+    if not os.path.exists('plots/' + datetime):
+        os.makedirs('plots/' + datetime)
+
+    if test:
+        save_path = f'plots/test/'
+        my_title += '_test'
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    if use_sim_sat:
+        save_path += 'radsim_'
+        my_title += '_radsim'
+
+    if k2:
+        save_path += 'k2_'
+        my_title += '_k2'
+    if smoothed:
+        save_path += 'smoothed_'
+        my_title += '_smoothed'
+    if mag_filter:
+        save_path += 'magfiltered_'
+        my_title += '_magfiltered'
+
+    return my_title, save_path
 
 
 def create_bins(range, bin_width):

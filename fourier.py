@@ -257,6 +257,30 @@ def find_max(polar_pspec, wnum_vals, theta_vals):
     return meshed_polar[0].flatten()[max_idx], meshed_polar[1].flatten()[max_idx]
 
 
+def find_corr_max(collapsed_correlation, K, L, wavelengths, thetas):
+    """
+    Same as find_max but for the 2d correlation array
+    Parameters
+    ----------
+    collapsed_correlation : np.array
+        has to be the "collapsed" correlation array
+    K
+    L
+    wavelengths
+    thetas
+
+    Returns
+    -------
+
+    """
+    halfway = K.shape[1] // 2
+    test_idx = np.nanargmax(collapsed_correlation)
+    dom_K, dom_L = K[:, halfway:].flatten()[test_idx], L[:, halfway:].flatten()[test_idx]
+    dominant_wlen, dominant_theta = wavelengths[:, halfway:].flatten()[test_idx], thetas[:, halfway:].flatten()[test_idx]
+
+    return dominant_wlen, dominant_theta, dom_K, dom_L
+
+
 def apply_wnum_bounds(polar_pspec, wnum_vals, wnum_bins, wlen_range):
     """
     Returns the polar power spectrum that is within a desired wavelength range, given its wavenumber bins and midpoint
@@ -311,3 +335,27 @@ def correlate_ellipse(pspec, angles, shape):
             correlation_array[iy, ix] = correlate(sub_matrix, ell / ell.sum())
 
     return np.ma.masked_where(pspec.mask, correlation_array)
+
+
+def get_ellipse_correlation(pspec_2d, thetas, ell_shape):
+    """
+    gets the correlation of the 2d power spectrum with an ellipse of shape ell_shape
+    Parameters
+    ----------
+    pspec_2d
+    thetas
+    ell_shape
+
+    Returns
+    -------
+
+    """
+
+    corr = correlate_ellipse(pspec_2d, thetas, ell_shape)
+    rot_left_half = rotate(corr[:, :corr.shape[1] // 2 + 1], 180)
+    collapsed_corr = corr[:, corr.shape[1] // 2:] + rot_left_half
+
+    # mask bottom half of k_x = 0 line as this is the same as the top half
+    collapsed_corr.mask[collapsed_corr.shape[0] // 2:, 0] = True
+
+    return collapsed_corr
