@@ -99,7 +99,7 @@ def load_settings(file):
 
 
 def get_datetime_from_settings(settings):
-    return f'{settings.year}{settings.month:02d}{settings.day:02d}_{settings.h}'
+    return f'{settings.year}-{settings.month:02d}-{settings.day:02d}_{settings.h}'
 
 
 def check_argv_num(argv, num_args, message=None):
