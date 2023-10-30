@@ -164,7 +164,7 @@ def get_sat_map_bltr(region, region_root='/home/users/sw825517/Documents/tephipl
     return satellite_bottomleft, satellite_topright, map_bottomleft, map_topright
 
 
-def make_title_and_save_path(datetime, region, data_source_string, test, k2, smoothed, mag_filter, use_sim_sat=True):
+def make_title_and_save_path(datetime, region, data_source_string, test, k2, smoothed, mag_filter, use_sim_sat=False):
     my_title = f'{datetime}_{region}_{data_source_string}'
 
     save_path = f'plots/{datetime}/{region}/'
