@@ -4,6 +4,7 @@ import time
 
 import cartopy.crs as ccrs
 import iris
+import pyproj
 from iris.analysis.cartography import unrotate_pole
 from iris.experimental.stratify import relevel
 from iris.fileformats.pp import EARTH_RADIUS
@@ -362,6 +363,48 @@ def create_latlon_cube(sat_bl, sat_tr, n=500):
     lon_coord = iris.coords.DimCoord(np.linspace(*lon_bounds, n), standard_name='longitude', units='degrees')
 
     empty = iris.cube.Cube(np.empty((n, n)), dim_coords_and_dims=[(lat_coord, 0), (lon_coord, 1)])
+
+    new_cs = iris.coord_systems.GeogCS(EARTH_RADIUS)
+    empty.coord(axis='x').coord_system = new_cs
+    empty.coord(axis='y').coord_system = new_cs
+
+    return empty
+
+
+def create_km_cube(bottomleft, topright):
+
+    midx = (bottomleft[0] + topright[0]) / 2
+    midy = (bottomleft[1] + topright[1]) / 2
+
+    g = pyproj.Geod(ellps='WGS84')
+
+    _, _, Lx = g.inv(bottomleft[0], midy, topright[0], midy)
+    _, _, Ly = g.inv(midx, bottomleft[1], midx, topright[1])
+
+    x_size = Lx / 1000
+    y_size = Ly / 1000
+
+    # ensure sizes are odd
+    if np.floor(x_size) % 2 == 1:
+        x_size = np.floor(x_size)
+    else:
+        x_size = np.ceil(x_size)
+
+    if np.floor(y_size) % 2 == 1:
+        y_size = np.floor(y_size)
+    else:
+        y_size = np.ceil(y_size)
+
+    x_size = x_size.astype('int')
+    y_size = y_size.astype('int')
+
+    lat_bounds = [bottomleft[1], topright[1]]
+    lon_bounds = [bottomleft[0], topright[0]]
+
+    lat_coord = iris.coords.DimCoord(np.linspace(*lat_bounds, y_size), standard_name='latitude', units='degrees')
+    lon_coord = iris.coords.DimCoord(np.linspace(*lon_bounds, x_size), standard_name='longitude', units='degrees')
+
+    empty = iris.cube.Cube(np.empty((y_size, x_size)), dim_coords_and_dims=[(lat_coord, 0), (lon_coord, 1)])
 
     new_cs = iris.coord_systems.GeogCS(EARTH_RADIUS)
     empty.coord(axis='x').coord_system = new_cs
