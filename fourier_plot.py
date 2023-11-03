@@ -121,7 +121,7 @@ def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, m
         xlabel = 'x distance / km'
         ylabel = 'y distance / km'
 
-    ax1.imshow(img,
+    plot = ax1.imshow(img,
                extent=physical_extent,
                cmap='gray')
     ax1.set_ylabel(ylabel)
@@ -134,7 +134,8 @@ def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, m
                    extent=physical_extent,
                    cmap='gray')
 
-    plt.suptitle(title)
+    ax1.title(title)
+    plt.colorbar(plot, label='TOA reflectance')
     plt.tight_layout()
 
 
