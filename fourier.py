@@ -1,12 +1,14 @@
 import numpy as np
 import pyproj
+from matplotlib import pyplot as plt
 from scipy import stats
-from scipy.interpolate import griddata
+from scipy.interpolate import griddata, RectBivariateSpline
+from scipy.optimize import *
 from skimage.morphology.footprints import ellipse
 from skimage.transform import rotate
 
 
-from miscellaneous import create_bins
+from miscellaneous import create_bins, pol2cart
 
 
 def recip_space(Lx, Ly, shape):
@@ -279,6 +281,46 @@ def find_corr_max(collapsed_correlation, K, L, wavelengths, thetas):
     dominant_wlen, dominant_theta = wavelengths[:, halfway:].flatten()[test_idx], thetas[:, halfway:].flatten()[test_idx]
 
     return dominant_wlen, dominant_theta, dom_K, dom_L
+
+
+def find_corr_error(coll_corr, K, L, dom_wnum, dom_theta):
+    """
+    gives an estimate on the error of the corr method in lambda and theta
+    Parameters
+    ----------
+    coll_corr
+    K
+    L
+    dom_wnum
+    dom_theta
+
+    Returns
+    -------
+
+    """
+    # make coll_corr with values for 180<theta<360 so that edges are properly interpolated
+    full_coll_corr = np.empty_like(K)
+    full_coll_corr[:, K.shape[1]//2:] = coll_corr.data
+    full_coll_corr[:, :K.shape[1]//2 + 1] = rotate(coll_corr.data, 180)
+
+    # reverse y direction as function needs y strictly increasing
+    interp = RectBivariateSpline(L[::-1, 0], K[0], full_coll_corr[::-1])
+
+    def interp_at_const_theta(k, theta=90):
+        kx, ky = pol2cart(k, np.deg2rad(-(theta-90)))
+        return interp(ky, kx).flatten() - np.nanmax(coll_corr)/2
+
+    def interp_at_const_k(theta, k=1):
+        kx, ky = pol2cart(k, np.deg2rad(-(theta-90)))
+        return interp(ky, kx).flatten() - np.nanmax(coll_corr)/2
+
+    theta_plus = root(interp_at_const_k, dom_theta + 5, args=dom_wnum).x[0]
+    theta_min = root(interp_at_const_k, dom_theta - 5, args=dom_wnum).x[0]
+
+    k_plus = root(interp_at_const_theta, dom_wnum + 0.05, args=dom_theta).x[0]
+    k_min = root(interp_at_const_theta, dom_wnum - 0.05, args=dom_theta).x[0]
+
+    return (2 * np.pi / k_plus, 2 * np.pi / k_min), (theta_min, theta_plus)
 
 
 def apply_wnum_bounds(polar_pspec, wnum_vals, wnum_bins, wlen_range):
