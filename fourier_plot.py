@@ -134,7 +134,7 @@ def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, m
                    extent=physical_extent,
                    cmap='gray')
 
-    ax1.title(title)
+    ax1.set_title(title)
     plt.colorbar(plot, label='TOA reflectance')
     plt.tight_layout()
 
@@ -150,5 +150,6 @@ def plot_corr(coll_corr, K, L):
     ax2.set_ylabel(r"$k_y$" + ' / ' + r"$\rm{km}^{-1}$")
     ax2.set_xlim(0, 2)
     ax2.set_ylim(-2, 2)
-    fig2.colorbar(im, extend='both')
+    fig2.colorbar(im)
+    ax2.set_aspect('equal')
     plt.tight_layout()
