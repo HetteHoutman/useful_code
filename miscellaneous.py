@@ -164,7 +164,7 @@ def get_sat_map_bltr(region, region_root='/home/users/sw825517/Documents/tephipl
     return satellite_bottomleft, satellite_topright, map_bottomleft, map_topright
 
 
-def make_title_and_save_path(datetime, region, data_source_string, test, k2, smoothed, mag_filter, use_sim_sat=False):
+def make_title_and_save_path(datetime, region, data_source_string, test, smoothed, mag_filter, k2=False, k3=False, use_sim_sat=False):
     my_title = f'{datetime}_{region}_{data_source_string}'
 
     save_path = f'plots/{datetime}/{region}/'
@@ -186,6 +186,9 @@ def make_title_and_save_path(datetime, region, data_source_string, test, k2, smo
     if k2:
         save_path += 'k2_'
         my_title += '_k2'
+    elif k3:
+        save_path += 'k3_'
+        my_title += '_k3'
     if smoothed:
         save_path += 'smoothed_'
         my_title += '_smoothed'
@@ -230,3 +233,15 @@ def create_bins_from_midpoints(midpoints_array):
     bin_width = midpoints_array[1] - midpoints_array[0]
     bins = np.linspace(midpoints_array[0] - bin_width/2, midpoints_array[-1] + bin_width / 2, len(midpoints_array) + 1)
     return bins
+
+
+def pol2cart(rho, phi):
+    x = rho * np.cos(phi)
+    y = rho * np.sin(phi)
+    return x, y
+
+
+def cart2pol(x, y):
+    rho = np.sqrt(x**2 + y**2)
+    phi = np.arctan2(y, x)
+    return rho, phi
