@@ -316,20 +316,20 @@ def find_corr_error(coll_corr, K, L, dom_wnum, dom_theta):
 
     res = root(interp_at_const_k, dom_theta + 5, args=dom_wnum)
     if not res.success:
-        print('WARNING: root finding not successful')
+        print('WARNING: root finding unsuccessful')
     theta_plus = res.x[0] % 360
     res = root(interp_at_const_k, dom_theta - 5, args=dom_wnum)
     if not res.success:
-        print('WARNING: root finding not successful')
+        print('WARNING: root finding unsuccessful')
     theta_min = res.x[0] % 360
 
     res = root(interp_at_const_theta, dom_wnum + 0.05, args=dom_theta)
     if not res.success:
-        print('WARNING: root finding not successful')
+        print('WARNING: root finding unsuccessful')
     k_plus = res.x[0]
     res = root(interp_at_const_theta, dom_wnum - 0.05, args=dom_theta)
     if not res.success:
-        print('WARNING: root finding not successful')
+        print('WARNING: root finding unsuccessful')
     k_min = res.x[0]
 
     # this ensures the format is (lower error, upper error)
