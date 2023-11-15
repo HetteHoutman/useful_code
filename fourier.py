@@ -332,7 +332,14 @@ def find_corr_error(coll_corr, K, L, dom_wnum, dom_theta):
         print('WARNING: root finding not successful')
     k_min = res.x[0]
 
-    return (2 * np.pi / k_plus, 2 * np.pi / k_min), (theta_min, theta_plus)
+    # this ensures the format is (lower error, upper error)
+    wlen_err = (min(2*np.pi/k_plus, 2*np.pi/k_min), max(2*np.pi/k_plus, 2*np.pi/k_min))
+
+    # if this the case, then the algorithm swapped upper and lower error accidentally, so flip theta_plus and theta_min
+    if ((theta_min > dom_theta) and (dom_theta > theta_plus)) or ((theta_plus > theta_min) and (theta_min > dom_theta)):
+        return wlen_err, (theta_plus, theta_min)
+    else:
+        return wlen_err, (theta_min, theta_plus)
 
 
 def apply_wnum_bounds(polar_pspec, wnum_vals, wnum_bins, wlen_range):
