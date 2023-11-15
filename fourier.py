@@ -314,11 +314,23 @@ def find_corr_error(coll_corr, K, L, dom_wnum, dom_theta):
         kx, ky = pol2cart(k, np.deg2rad(-(theta-90)))
         return interp(ky, kx).flatten() - np.nanmax(coll_corr)/2
 
-    theta_plus = root(interp_at_const_k, dom_theta + 5, args=dom_wnum).x[0]
-    theta_min = root(interp_at_const_k, dom_theta - 5, args=dom_wnum).x[0]
+    res = root(interp_at_const_k, dom_theta + 5, args=dom_wnum)
+    if not res.success:
+        print('WARNING: root finding not successful')
+    theta_plus = res.x[0] % 360
+    res = root(interp_at_const_k, dom_theta - 5, args=dom_wnum)
+    if not res.success:
+        print('WARNING: root finding not successful')
+    theta_min = res.x[0] % 360
 
-    k_plus = root(interp_at_const_theta, dom_wnum + 0.05, args=dom_theta).x[0]
-    k_min = root(interp_at_const_theta, dom_wnum - 0.05, args=dom_theta).x[0]
+    res = root(interp_at_const_theta, dom_wnum + 0.05, args=dom_theta)
+    if not res.success:
+        print('WARNING: root finding not successful')
+    k_plus = res.x[0]
+    res = root(interp_at_const_theta, dom_wnum - 0.05, args=dom_theta)
+    if not res.success:
+        print('WARNING: root finding not successful')
+    k_min = res.x[0]
 
     return (2 * np.pi / k_plus, 2 * np.pi / k_min), (theta_min, theta_plus)
 
