@@ -101,7 +101,7 @@ def plot_2D_pspec(bandpassed_pspec, K, L, wavelengths, wavelength_contours=None,
 
 
 def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, min_lambda=3, max_lambda=20,
-                      title='title'):
+                      title='title', radsim=True):
     if inverse_fft:
         fig, (ax1, ax3) = plt.subplots(1, 2, sharey=True)
     else:
@@ -135,7 +135,11 @@ def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, m
                    cmap='gray')
 
     ax1.set_title(title)
-    plt.colorbar(plot, label='TOA reflectance')
+    if radsim:
+        label = 'TOA reflectance'
+    else:
+        label = 'Vertical velocity'
+    plt.colorbar(plot, label=label)
     plt.tight_layout()
 
 
