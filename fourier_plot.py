@@ -138,7 +138,7 @@ def filtered_inv_plot(img, filtered_ft, Lx, Ly, latlon=None, inverse_fft=True, m
     if radsim:
         label = 'TOA reflectance'
     else:
-        label = 'Vertical velocity'
+        label = 'Vertical velocity (m/s)'
     plt.colorbar(plot, label=label)
     plt.tight_layout()
 
