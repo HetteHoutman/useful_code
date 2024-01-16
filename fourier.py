@@ -259,6 +259,11 @@ def find_max(polar_pspec, wnum_vals, theta_vals):
     return meshed_polar[0].flatten()[max_idx], meshed_polar[1].flatten()[max_idx]
 
 
+def find_cart_max(pspec_2d, K, L, wavelengths, thetas):
+    max_idx = np.nanargmax(pspec_2d)
+    return wavelengths.flatten()[max_idx], thetas.flatten()[max_idx], K.flatten()[max_idx], L.flatten()[max_idx]
+
+
 def find_corr_max(collapsed_correlation, K, L, wavelengths, thetas):
     """
     Same as find_max but for the 2d correlation array
