@@ -245,3 +245,21 @@ def cart2pol(x, y):
     rho = np.sqrt(x**2 + y**2)
     phi = np.arctan2(y, x)
     return rho, phi
+
+
+def argmax_lastNaxes(A, N):
+    """
+    finds the indices of the maxima along the last N axes of array A
+    Parameters
+    ----------
+    A
+    N
+
+    Returns
+    -------
+
+    """
+    s = A.shape
+    new_shp = s[:-N] + (np.prod(s[-N:]),)
+    max_idx = A.reshape(new_shp).argmax(-1)
+    return np.unravel_index(max_idx, s[-N:])
