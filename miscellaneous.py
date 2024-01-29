@@ -235,6 +235,13 @@ def create_bins_from_midpoints(midpoints_array):
     return bins
 
 
+def create_range_and_bin_edges_from_minmax(minmax, n):
+    range = np.linspace(minmax[0], minmax[1], n)
+    diff = range[1] - range[0]
+    bin_edges = np.linspace(minmax[0] - diff/2, minmax[1] + diff/2, n+1)
+    return range, bin_edges
+
+
 def pol2cart(rho, phi):
     x = rho * np.cos(phi)
     y = rho * np.sin(phi)
@@ -263,3 +270,14 @@ def argmax_lastNaxes(A, N):
     new_shp = s[:-N] + (np.prod(s[-N:]),)
     max_idx = A.reshape(new_shp).argmax(-1)
     return np.unravel_index(max_idx, s[-N:])
+
+
+def log_spaced_lambda(minmax, factor):
+    n = int(np.round(1 + np.log(minmax[1] / minmax[0]) / np.log(factor)))
+    range, bin_edges = create_range_and_bin_edges_from_minmax(np.log(minmax), n)
+    return np.exp(range), np.exp(bin_edges)
+
+
+def k_spaced_lambda(minmax, n):
+    range, bin_edges = create_range_and_bin_edges_from_minmax(2 * np.pi / np.array(minmax), n)
+    return 2 * np.pi / range, 2 * np.pi / bin_edges
