@@ -21,3 +21,41 @@ def max_lambda_theta(power_spectrum, lambdas, thetas):
     dom_theta = thetas[np.moveaxis(posvect_pspec_max, 0, -1)[..., 1]]
 
     return dom_lambda, dom_theta
+
+
+def find_array_max_idxs(a):
+    return np.unravel_index(a.argmax(), a.shape)
+
+
+def find_2d_peak_width_idxs(a, peak_idxs, height=0.5):
+
+    thresh = a[*peak_idxs] * height
+
+    x_lowererr_idx, x_uppererr_idx = peak_idxs[0] - 1, peak_idxs[0] + 1
+    y_lowererr_idx, y_uppererr_idx = peak_idxs[1] - 1, peak_idxs[1] + 1
+
+    while a[x_uppererr_idx + 1, peak_idxs[1]] > thresh:
+        x_uppererr_idx += 1
+    while a[x_lowererr_idx - 1, peak_idxs[1]] > thresh:
+        x_lowererr_idx -= 1
+
+    while a[peak_idxs[0], y_uppererr_idx + 1] > thresh:
+        y_uppererr_idx += 1
+    while a[peak_idxs[0], y_lowererr_idx - 1] > thresh:
+        y_lowererr_idx -= 1
+
+    return [[x_lowererr_idx, x_uppererr_idx], [y_lowererr_idx, y_uppererr_idx]]
+
+
+def find_polar_max_and_error(polar_array, lambdas, thetas, height=0.5):
+    max_idxs = find_array_max_idxs(polar_array)
+
+    # tile so that errors can wrap around 180-0 degrees
+    tiled_array = np.tile(polar_array, 3)
+    tiled_max_idxs = [max_idxs[0], max_idxs[1] + polar_array.shape[1]]
+    error_idxs = find_2d_peak_width_idxs(tiled_array, tiled_max_idxs, height=height)
+
+    for i in range(2):
+        error_idxs[1][i] %= polar_array.shape[1]
+
+    return lambdas[max_idxs[0]], thetas[max_idxs[1]], lambdas[error_idxs[0]], thetas[error_idxs[1]]
