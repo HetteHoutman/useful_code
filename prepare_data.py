@@ -1,13 +1,13 @@
-import json
 import os
 import sys
 
 import iris
-from iris.analysis import Linear
 import netCDF4 as nc
+from iris.analysis import Linear
 
 from cube_processing import read_variable, cube_from_array_and_cube, cube_at_single_level, create_km_cube
 from fourier import extract_distances
+from prepare_metadata import get_sat_map_bltr
 from psd import periodic_smooth_decomp
 
 
@@ -22,16 +22,17 @@ def get_w_field_img(datetime, region, map_height=2000, leadtime=0, region_root='
     -------
 
     """
+
     file = f'/home/users/sw825517/Documents/ukv_data/ukv_{datetime.strftime("%Y-%m-%d_%H")}_{leadtime:03.0f}.pp'
 
     w_cube = read_variable(file, 150, datetime.hour)
-    u_cube = read_variable(file, 2, datetime.hour).regrid(w_cube, iris.analysis.Linear())
-    v_cube = read_variable(file, 3, datetime.hour).regrid(w_cube, iris.analysis.Linear())
+    u_cube = read_variable(file, 2, datetime.hour).regrid(w_cube, Linear())
+    v_cube = read_variable(file, 3, datetime.hour).regrid(w_cube, Linear())
 
     sat_bl, sat_tr, map_bl, map_tr = get_sat_map_bltr(region, region_root=region_root)
     w_single_level, u_single_level, v_single_level = cube_at_single_level(map_height, w_cube, u_cube, v_cube,
                                                                           bottomleft=map_bl, topright=map_tr)
-    w_field = w_single_level.regrid(create_km_cube(sat_bl, sat_tr), iris.analysis.Linear())
+    w_field = w_single_level.regrid(create_km_cube(sat_bl, sat_tr), Linear())
 
     # prepare data for fourier analysis
     Lx, Ly = extract_distances(w_field.coords('latitude')[0].points, w_field.coords('longitude')[0].points)
@@ -202,41 +203,3 @@ def regrid_10m_wind_and_save(settings, pp_file, target_file):
     full_pp[-2] = v_rg
 
     iris.save(full_pp, target_file)
-
-
-def get_sat_map_bltr(region, region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
-    """
-    gives the bottom left and top right points of the "map" and "satellite" plots
-    Parameters
-    ----------
-    region
-    region_root
-
-    Returns
-    -------
-
-    """
-    sat_bounds = get_variable_from_region_json("sat_bounds", region, region_root)
-    satellite_bottomleft, satellite_topright = sat_bounds[:2], sat_bounds[2:]
-    map_bounds = get_variable_from_region_json("map_bounds", region, region_root)
-    map_bottomleft, map_topright = map_bounds[:2], map_bounds[2:]
-
-    return satellite_bottomleft, satellite_topright, map_bottomleft, map_topright
-
-
-def get_variable_from_region_json(var, region, root='/home/users/sw825517/Documents/tephiplot/regions/'):
-    """
-    returns the bottom left and top right lon/lat coordinates for the satellite image and map
-    Parameters
-    ----------
-    region : str
-        the region for which the bounds should be returned
-
-    Returns
-    -------
-
-    """
-    with open(root + region + '.json') as f:
-        bounds_dict = json.loads(f.read())
-
-    return bounds_dict[var]
