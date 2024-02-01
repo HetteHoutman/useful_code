@@ -31,8 +31,8 @@ def find_2d_peak_width_idxs(a, peak_idxs, height=0.5):
 
     thresh = a[*peak_idxs] * height
 
-    x_lowererr_idx, x_uppererr_idx = peak_idxs[0] - 1, peak_idxs[0] + 1
-    y_lowererr_idx, y_uppererr_idx = peak_idxs[1] - 1, peak_idxs[1] + 1
+    x_lowererr_idx, x_uppererr_idx = peak_idxs[0], peak_idxs[0]
+    y_lowererr_idx, y_uppererr_idx = peak_idxs[1], peak_idxs[1]
 
     while a[x_uppererr_idx + 1, peak_idxs[1]] > thresh:
         x_uppererr_idx += 1
