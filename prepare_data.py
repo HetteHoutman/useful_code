@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -5,12 +6,40 @@ import iris
 from iris.analysis import Linear
 import netCDF4 as nc
 
-from cube_processing import read_variable, cube_from_array_and_cube
+from cube_processing import read_variable, cube_from_array_and_cube, cube_at_single_level, create_km_cube
 from fourier import extract_distances
 from psd import periodic_smooth_decomp
 
 
-def get_radsim_img(settings, datetime, empty):
+def get_w_field_img(datetime, region, map_height=2000, leadtime=0, region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
+    """
+    gets w field from ukv and prepares it for fourier analysis
+    Parameters
+    ----------
+    settings
+
+    Returns
+    -------
+
+    """
+    file = f'/home/users/sw825517/Documents/ukv_data/ukv_{datetime.strftime("%Y-%m-%d_%H")}_{leadtime:03.0f}.pp'
+
+    w_cube = read_variable(file, 150, datetime.hour)
+    u_cube = read_variable(file, 2, datetime.hour).regrid(w_cube, iris.analysis.Linear())
+    v_cube = read_variable(file, 3, datetime.hour).regrid(w_cube, iris.analysis.Linear())
+
+    sat_bl, sat_tr, map_bl, map_tr = get_sat_map_bltr(region, region_root=region_root)
+    w_single_level, u_single_level, v_single_level = cube_at_single_level(map_height, w_cube, u_cube, v_cube,
+                                                                          bottomleft=map_bl, topright=map_tr)
+    w_field = w_single_level.regrid(create_km_cube(sat_bl, sat_tr), iris.analysis.Linear())
+
+    # prepare data for fourier analysis
+    Lx, Ly = extract_distances(w_field.coords('latitude')[0].points, w_field.coords('longitude')[0].points)
+    w_field = w_field[0, ::-1].data
+    return w_field, Lx, Ly
+
+
+def get_radsim_img(datetime, region, region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
     """
     gets the simulated satellite imagery from radsim and prepares it for fourier analysis.
     could probs divvy this up into functions too
@@ -25,11 +54,12 @@ def get_radsim_img(settings, datetime, empty):
     """
     # this should be the radsim output netCDF4 file
     nc_file_root = f"/home/users/sw825517/radsim/radsim-3.2/outputs"
-    nc_filename = f'{datetime}.nc'
+    datetime_string = datetime.strftime("%Y-%m-%d_%H")
+    nc_filename = f'{datetime_string}.nc'
 
     # pp files
-    packed_pp = f'/home/users/sw825517/Documents/ukv_data/ukv_{datetime}_000.pp'
-    unpacked_pp = f'/home/users/sw825517/Documents/ukv_data/ukv_{datetime}_000.unpacked.pp'
+    packed_pp = f'/home/users/sw825517/Documents/ukv_data/ukv_{datetime_string}_000.pp'
+    unpacked_pp = f'/home/users/sw825517/Documents/ukv_data/ukv_{datetime_string}_000.unpacked.pp'
 
     # in case radsim has already run simulation
     try:
@@ -41,7 +71,7 @@ def get_radsim_img(settings, datetime, empty):
         radsim_run_file = "/home/users/sw825517/radsim/radsim-3.2/src/scripts/radsim_run.py"
 
         # run radsim_run.py with radsim_settings, so set radsim_settings accordingly
-        radsim_settings = {'config_file': f'/home/users/sw825517/radsim/radsim-3.2/outputs/{datetime}.cfg',
+        radsim_settings = {'config_file': f'/home/users/sw825517/radsim/radsim-3.2/outputs/{datetime_string}.cfg',
                            'radsim_bin_dir': '/home/users/sw825517/radsim/radsim-3.2/bin/',
                            'brdf_atlas_dir': '/home/users/sw825517/rttov13/brdf_data/',
                            'use_brdf_atlas': False,
@@ -72,18 +102,18 @@ def get_radsim_img(settings, datetime, empty):
             if os.path.isfile(packed_pp):
                 # ensure packed pp has 10m winds on correct grid
                 try:
-                    _ = read_variable(packed_pp, 3209, settings.h)
-                    _ = read_variable(packed_pp, 3210, settings.h)
+                    _ = read_variable(packed_pp, 3209, datetime.hour)
+                    _ = read_variable(packed_pp, 3210, datetime.hour)
                 except IndexError:
                     print(f'packed .pp {packed_pp} does not have 10m winds on correct grid, regridding...')
-                    regrid_10m_wind_and_append(settings, packed_pp)
+                    regrid_10m_wind_and_append(datetime, packed_pp)
 
                 # unpack
                 os.system(f'/home/users/sw825517/Documents/ukv_data/pp_unpack {packed_pp}')
                 # rename unpacked pp so that it ends on '.pp'
                 os.system(
-                    f"cp /home/users/sw825517/Documents/ukv_data/ukv_{datetime}_000.pp.unpacked {unpacked_pp}")
-                os.system(f"rm /home/users/sw825517/Documents/ukv_data/ukv_{datetime}_000.pp.unpacked")
+                    f"cp /home/users/sw825517/Documents/ukv_data/ukv_{datetime_string}_000.pp.unpacked {unpacked_pp}")
+                os.system(f"rm /home/users/sw825517/Documents/ukv_data/ukv_{datetime_string}_000.pp.unpacked")
 
             else:
                 print(f'packed .pp {packed_pp} not found')
@@ -98,9 +128,10 @@ def get_radsim_img(settings, datetime, empty):
         refl = get_refl(nc_file_root + '/' + nc_filename)
 
     # convert radsim reflectivity data from netCDF4 into iris cube, to regrid it onto a regular latlon grid
-    surf_t = read_variable(packed_pp, 24, settings.h)
+    surf_t = read_variable(packed_pp, 24, datetime.hour)
     refl_cube = cube_from_array_and_cube(refl[::-1], surf_t, unit=1, std_name='toa_bidirectional_reflectance')
-    refl_regrid = refl_cube.regrid(empty, Linear())
+    sat_bl, sat_tr, _, _ = get_sat_map_bltr(region, region_root)
+    refl_regrid = refl_cube.regrid(create_km_cube(sat_bl, sat_tr), Linear())
 
     x_dist, y_dist = extract_distances(refl_regrid.coords('latitude')[0].points,
                                        refl_regrid.coords('longitude')[0].points)
@@ -125,10 +156,10 @@ def get_refl(nc_file):
     return refl
 
 
-def regrid_10m_wind_and_append(settings, pp_file):
-    surft = read_variable(pp_file, 24, settings.h)
-    u = read_variable(pp_file, 3225, settings.h)
-    v = read_variable(pp_file, 3226, settings.h)
+def regrid_10m_wind_and_append(datetime, pp_file):
+    surft = read_variable(pp_file, 24, datetime.hour)
+    u = read_variable(pp_file, 3225, datetime.hour)
+    v = read_variable(pp_file, 3226, datetime.hour)
 
     u_rg = u.regrid(surft, Linear())
     v_rg = v.regrid(surft, Linear())
@@ -171,3 +202,41 @@ def regrid_10m_wind_and_save(settings, pp_file, target_file):
     full_pp[-2] = v_rg
 
     iris.save(full_pp, target_file)
+
+
+def get_sat_map_bltr(region, region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
+    """
+    gives the bottom left and top right points of the "map" and "satellite" plots
+    Parameters
+    ----------
+    region
+    region_root
+
+    Returns
+    -------
+
+    """
+    sat_bounds = get_variable_from_region_json("sat_bounds", region, region_root)
+    satellite_bottomleft, satellite_topright = sat_bounds[:2], sat_bounds[2:]
+    map_bounds = get_variable_from_region_json("map_bounds", region, region_root)
+    map_bottomleft, map_topright = map_bounds[:2], map_bounds[2:]
+
+    return satellite_bottomleft, satellite_topright, map_bottomleft, map_topright
+
+
+def get_variable_from_region_json(var, region, root='/home/users/sw825517/Documents/tephiplot/regions/'):
+    """
+    returns the bottom left and top right lon/lat coordinates for the satellite image and map
+    Parameters
+    ----------
+    region : str
+        the region for which the bounds should be returned
+
+    Returns
+    -------
+
+    """
+    with open(root + region + '.json') as f:
+        bounds_dict = json.loads(f.read())
+
+    return bounds_dict[var]
