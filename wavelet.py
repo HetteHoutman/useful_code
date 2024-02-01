@@ -34,15 +34,41 @@ def find_2d_peak_width_idxs(a, peak_idxs, height=0.5):
     x_lowererr_idx, x_uppererr_idx = peak_idxs[0], peak_idxs[0]
     y_lowererr_idx, y_uppererr_idx = peak_idxs[1], peak_idxs[1]
 
-    while a[x_uppererr_idx + 1, peak_idxs[1]] > thresh:
-        x_uppererr_idx += 1
-    while a[x_lowererr_idx - 1, peak_idxs[1]] > thresh:
-        x_lowererr_idx -= 1
+    while True:
+        try:
+            if a[x_uppererr_idx + 1, peak_idxs[1]] > thresh:
+                x_uppererr_idx += 1
+            else:
+                break
+        except IndexError:
+            break
 
-    while a[peak_idxs[0], y_uppererr_idx + 1] > thresh:
-        y_uppererr_idx += 1
-    while a[peak_idxs[0], y_lowererr_idx - 1] > thresh:
-        y_lowererr_idx -= 1
+    while True:
+        try:
+            if a[x_lowererr_idx - 1, peak_idxs[1]] > thresh:
+                x_lowererr_idx -= 1
+            else:
+                break
+        except IndexError:
+            break
+
+    while True:
+        try:
+            if a[peak_idxs[0], y_uppererr_idx + 1] > thresh:
+                y_uppererr_idx += 1
+            else:
+                break
+        except IndexError:
+            break
+
+    while True:
+        try:
+            if a[peak_idxs[0], y_lowererr_idx - 1] > thresh:
+                y_lowererr_idx -= 1
+            else:
+                break
+        except IndexError:
+            break
 
     return [[x_lowererr_idx, x_uppererr_idx], [y_lowererr_idx, y_uppererr_idx]]
 
