@@ -126,44 +126,6 @@ def check_argv_num(argv, num_args, message=None):
         raise Exception(text)
 
 
-def get_region_var(var, region, root):
-    """
-    returns the bottom left and top right lon/lat coordinates for the satellite image and map
-    Parameters
-    ----------
-    region : str
-        the region for which the bounds should be returned
-
-    Returns
-    -------
-
-    """
-    with open(root + region + '.json') as f:
-        bounds_dict = json.loads(f.read())
-
-    return bounds_dict[var]
-
-
-def get_sat_map_bltr(region, region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
-    """
-    gives the bottom left and top right points of the "map" and "satellite" plots
-    Parameters
-    ----------
-    region
-    region_root
-
-    Returns
-    -------
-
-    """
-    sat_bounds = get_region_var("sat_bounds", region, region_root)
-    satellite_bottomleft, satellite_topright = sat_bounds[:2], sat_bounds[2:]
-    map_bounds = get_region_var("map_bounds", region, region_root)
-    map_bottomleft, map_topright = map_bounds[:2], map_bounds[2:]
-
-    return satellite_bottomleft, satellite_topright, map_bottomleft, map_topright
-
-
 def make_title_and_save_path(datetime, region, data_source_string, test, smoothed=False, mag_filter=False, k2=False, k3=False, use_sim_sat=False):
     my_title = f'{datetime}_{region}_{data_source_string}'
 
