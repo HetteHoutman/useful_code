@@ -8,7 +8,6 @@ from iris.analysis import Linear
 from cube_processing import read_variable, cube_from_array_and_cube, cube_at_single_level, create_km_cube
 from fourier import extract_distances
 from prepare_metadata import get_sat_map_bltr
-from psd import periodic_smooth_decomp
 
 
 def get_w_field_img(datetime, region, map_height=2000, leadtime=0, region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
@@ -128,6 +127,9 @@ def get_radsim_img(datetime, region, region_root='/home/users/sw825517/Documents
         os.system(f"python {radsim_run_file} {set_str}")
         refl = get_refl(nc_file_root + '/' + nc_filename)
 
+        # remove unpacked pp now that .nc file has been created, to free up space
+        os.system(f'rm {unpacked_pp}')
+
     # convert radsim reflectivity data from netCDF4 into iris cube, to regrid it onto a regular latlon grid
     surf_t = read_variable(packed_pp, 24, datetime.hour)
     refl_cube = cube_from_array_and_cube(refl[::-1], surf_t, unit=1, std_name='toa_bidirectional_reflectance')
@@ -137,7 +139,6 @@ def get_radsim_img(datetime, region, region_root='/home/users/sw825517/Documents
     x_dist, y_dist = extract_distances(refl_regrid.coords('latitude')[0].points,
                                        refl_regrid.coords('longitude')[0].points)
     image = refl_regrid.data[::-1]
-    image, smooth = periodic_smooth_decomp(image)
 
     return image, x_dist, y_dist
 
