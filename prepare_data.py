@@ -22,7 +22,7 @@ def get_w_field_img(datetime, region, map_height=2000, leadtime=0, region_root='
 
     """
 
-    file = f'/home/users/sw825517/Documents/ukv_data/ukv_{datetime.strftime("%Y-%m-%d_%H")}_{leadtime:03.0f}.pp'
+    file = f'/storage/silver/metstudent/phd/sw825517/ukv_data/ukv_{datetime.strftime("%Y-%m-%d_%H")}_{leadtime:03.0f}.pp'
 
     w_cube = read_variable(file, 150, datetime.hour)
     u_cube = read_variable(file, 2, datetime.hour).regrid(w_cube, Linear())
