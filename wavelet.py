@@ -85,3 +85,7 @@ def find_polar_max_and_error(polar_array, lambdas, thetas, height=0.5):
         error_idxs[1][i] %= polar_array.shape[1]
 
     return lambdas[max_idxs[0]], thetas[max_idxs[1]], lambdas[error_idxs[0]], thetas[error_idxs[1]]
+
+
+def angle_error(angle1, angle2):
+    return (angle2- angle1) - np.round((angle2 - angle1) / 180) * 180
