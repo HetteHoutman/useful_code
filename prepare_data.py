@@ -4,13 +4,15 @@ import sys
 import iris
 import netCDF4 as nc
 from iris.analysis import Linear
+from iris.coords import AuxCoord
 
-from cube_processing import read_variable, cube_from_array_and_cube, cube_at_single_level, create_km_cube
+from cube_processing import read_variable, cube_from_array_and_cube, cube_at_single_level, create_km_cube, add_pressure_to_cube
 from fourier import extract_distances
 from prepare_metadata import get_sat_map_bltr
 
 
-def get_w_field_img(datetime, region, map_height=2000, leadtime=0, region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
+def get_w_field_img(datetime, region, map_height=2000, leadtime=0, coord='altitude',
+                    region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
     """
     gets w field from ukv and prepares it for fourier analysis
     Parameters
@@ -28,9 +30,20 @@ def get_w_field_img(datetime, region, map_height=2000, leadtime=0, region_root='
     u_cube = read_variable(file, 2, datetime.hour).regrid(w_cube, Linear())
     v_cube = read_variable(file, 3, datetime.hour).regrid(w_cube, Linear())
 
+    if coord=='air_pressure':
+        pw_cube = read_variable(file, 407, datetime.hour)
+        pw_coord = AuxCoord(points=pw_cube.data, standard_name=pw_cube.standard_name, long_name=pw_cube.long_name,
+                           units=pw_cube.units, coord_system=pw_cube.coord_system())
+        pu_cube = read_variable(file, 408, datetime.hour)
+        pu_coord = AuxCoord(points=pu_cube.data, standard_name=pu_cube.standard_name, long_name=pu_cube.long_name,
+                            units=pu_cube.units, coord_system=pu_cube.coord_system())
+        add_pressure_to_cube(w_cube, pw_coord)
+        add_pressure_to_cube(u_cube, pu_coord)
+        add_pressure_to_cube(v_cube, pu_coord)
+
     sat_bl, sat_tr, map_bl, map_tr = get_sat_map_bltr(region, region_root=region_root)
     w_single_level, u_single_level, v_single_level = cube_at_single_level(map_height, w_cube, u_cube, v_cube,
-                                                                          bottomleft=map_bl, topright=map_tr)
+                                                                          bottomleft=map_bl, topright=map_tr, coord=coord)
     w_field = w_single_level.regrid(create_km_cube(sat_bl, sat_tr), Linear())
 
     # prepare data for fourier analysis
