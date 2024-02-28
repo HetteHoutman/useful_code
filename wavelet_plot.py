@@ -45,14 +45,15 @@ def plot_polar_pcolormesh(hist, lambda_bin_edges, theta_bin_edges, cbarlabel='la
 
 
 def plot_result_lambda_hist(l1, l2, l_edges, label1=None, label2=None):
-    hist, _, _, _ = plt.hist2d(l1, l2, bins=[l_edges, l_edges])
+    hist, _, _, _ = plt.hist2d(l1, l2, bins=[l_edges, l_edges], cmin=1)
     plt.xscale('log')
     plt.yscale('log')
     plt.colorbar(label='Count')
     ax = plt.gca()
+    ax.yaxis.set_minor_formatter(StrMethodFormatter('{x:.0f}'))
     ax.yaxis.set_major_formatter(StrMethodFormatter('{x:.0f}'))
-    ax.yaxis.set_minor_formatter(NullFormatter())
+    ax.xaxis.set_minor_formatter(StrMethodFormatter('{x:.0f}'))
     ax.xaxis.set_major_formatter(StrMethodFormatter('{x:.0f}'))
-    ax.xaxis.set_minor_formatter(NullFormatter())
+
     plt.xlabel(label1)
     plt.ylabel(label2)
