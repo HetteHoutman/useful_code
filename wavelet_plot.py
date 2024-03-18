@@ -9,13 +9,17 @@ def calc_extent(image, Lx, Ly):
     return extent
 
 
-def plot_contour_over_image(orig, plotted_array, Lx, Ly, cbarlabel='colorbar label', **contour_kwargs):
-    plt.imshow(orig, cmap='gray', extent=calc_extent(orig, Lx, Ly))
-    plt.contourf(plotted_array[::-1], extent=calc_extent(orig, Lx, Ly), **contour_kwargs)
-    plt.colorbar(label=cbarlabel)
+def plot_contour_over_image(orig, plotted_array, Lx, Ly, cbarlabels=['colorbar label1', 'cbarlabel2'], **contour_kwargs):
+    img = plt.imshow(orig, cmap='gray', extent=calc_extent(orig, Lx, Ly))
+    var = plt.contourf(plotted_array[::-1], extent=calc_extent(orig, Lx, Ly), **contour_kwargs)
 
-    plt.xlabel('x distance / km')
-    plt.ylabel('y distance / km')
+    var_cbar = plt.colorbar(var, label=cbarlabels[1])
+    var_cbar.solids.set(alpha=1)
+    img_cbar = plt.colorbar(img, label=cbarlabels[0])
+
+    plt.xlabel('Easting (km)')
+    plt.ylabel('Northing (km)')
+    plt.tight_layout()
 
 
 def plot_k_histogram(dom_lambdas, dom_thetas, lambda_bin_edges, theta_bin_edges, **kwargs):
