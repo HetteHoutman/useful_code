@@ -16,7 +16,7 @@ def max_lambda_theta(power_spectrum, lambdas, thetas):
     -------
 
     """
-    posvect_pspec_max = argmax_lastNaxes(power_spectrum, 2)
+    posvect_pspec_max = argmax_lastNaxes(power_spectrum.data, 2)
     posvect_pspec_max = np.moveaxis(posvect_pspec_max, 0, -1)
     dom_lambda = np.ma.masked_where(power_spectrum.mask.all((-2,-1)), lambdas[posvect_pspec_max[..., 0]])
     dom_theta = np.ma.masked_where(power_spectrum.mask.all((-2,-1)), thetas[posvect_pspec_max[..., 1]])
