@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import StrMethodFormatter, NullFormatter
+from matplotlib.colors import CenteredNorm
+import cartopy.crs as ccrs
+import iris.plot as iplt
 
 def calc_extent(image, Lx, Ly):
     pixel_x = Lx / image.shape[1]
@@ -61,3 +64,16 @@ def plot_result_lambda_hist(l1, l2, l_edges, label1=None, label2=None):
 
     plt.xlabel(label1)
     plt.ylabel(label2)
+
+
+def plot_wind(w, u, v, step=25):
+    fig, ax = plt.subplots(1, 1,
+                           subplot_kw={'projection': ccrs.PlateCarree()}
+                           )
+    con = iplt.pcolormesh(w[0], norm=CenteredNorm(), cmap='brewer_PuOr_11')
+    iplt.quiver(u[0, ::step, ::step], v[0, ::step, ::step])
+    ax.gridlines(draw_labels=True)
+    ax.coastlines()
+    plt.colorbar(con, label='Upward air velocity / m/s', location='right',
+                 # orientation='vertical'
+                 )
