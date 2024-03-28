@@ -3,7 +3,9 @@ import sys
 
 import iris
 import netCDF4 as nc
+import numpy as np
 from iris.analysis import Linear
+from iris.analysis.cartography import rotate_winds
 from iris.coords import AuxCoord
 
 from cube_processing import read_variable, cube_from_array_and_cube, cube_at_single_level, create_km_cube, add_pressure_to_cube
@@ -25,15 +27,19 @@ def get_w_field_img(datetime, region, map_height=2000, leadtime=0, coord='altitu
     """
 
     file = f'/storage/silver/metstudent/phd/sw825517/ukv_data/ukv_{datetime.strftime("%Y-%m-%d_%H")}_{leadtime:03.0f}.pp'
+    sat_bl, sat_tr, map_bl, map_tr = get_sat_map_bltr(region, region_root=region_root)
+    km_cube = create_km_cube(sat_bl, sat_tr)
 
     w_cube = read_variable(file, 150, datetime.hour)
     u_cube = read_variable(file, 2, datetime.hour).regrid(w_cube, Linear())
     v_cube = read_variable(file, 3, datetime.hour).regrid(w_cube, Linear())
 
+    u_cube, v_cube = rotate_winds(u_cube, v_cube, km_cube.coord_system())
+
     if coord=='air_pressure':
         pw_cube = read_variable(file, 407, datetime.hour)
         pw_coord = AuxCoord(points=pw_cube.data, standard_name=pw_cube.standard_name, long_name=pw_cube.long_name,
-                           units=pw_cube.units, coord_system=pw_cube.coord_system())
+                            units=pw_cube.units, coord_system=pw_cube.coord_system())
         pu_cube = read_variable(file, 408, datetime.hour)
         pu_coord = AuxCoord(points=pu_cube.data, standard_name=pu_cube.standard_name, long_name=pu_cube.long_name,
                             units=pu_cube.units, coord_system=pu_cube.coord_system())
@@ -41,15 +47,16 @@ def get_w_field_img(datetime, region, map_height=2000, leadtime=0, coord='altitu
         add_pressure_to_cube(u_cube, pu_coord)
         add_pressure_to_cube(v_cube, pu_coord)
 
-    sat_bl, sat_tr, map_bl, map_tr = get_sat_map_bltr(region, region_root=region_root)
     w_single_level, u_single_level, v_single_level = cube_at_single_level(map_height, w_cube, u_cube, v_cube,
                                                                           bottomleft=map_bl, topright=map_tr, coord=coord)
-    w_field = w_single_level.regrid(create_km_cube(sat_bl, sat_tr), Linear())
+    w_field = w_single_level.regrid(km_cube, Linear())
+    u_field = u_single_level.regrid(km_cube, Linear())
+    v_field = v_single_level.regrid(km_cube, Linear())
+    wind_dir_field = cube_from_array_and_cube(90 -  np.rad2deg(np.arctan2(v_field[0].data, u_field[0].data)), km_cube)
 
     # prepare data for fourier analysis
     Lx, Ly = extract_distances(w_field.coords('latitude')[0].points, w_field.coords('longitude')[0].points)
-    w_field = w_field[0, ::-1].data
-    return w_field, Lx, Ly
+    return w_field, u_field, v_field, wind_dir_field, Lx, Ly
 
 
 def get_radsim_img(datetime, region, region_root='/home/users/sw825517/Documents/tephiplot/regions/'):
