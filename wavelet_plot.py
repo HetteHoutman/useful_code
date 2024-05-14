@@ -5,6 +5,9 @@ from matplotlib.colors import CenteredNorm
 import cartopy.crs as ccrs
 import iris.plot as iplt
 
+from cube_processing import cube_from_array_and_cube
+
+
 def calc_extent(image, Lx, Ly):
     pixel_x = Lx / image.shape[1]
     pixel_y = Ly / image.shape[0]
@@ -77,3 +80,17 @@ def plot_wind(w, u, v, step=25):
     plt.colorbar(con, label='Upward air velocity / m/s', location='right',
                  # orientation='vertical'
                  )
+
+def plot_wind_and_or(u, v, theta, sat, step=25):
+    fig, ax = plt.subplots(1, 1, subplot_kw = {'projection': ccrs.PlateCarree()})
+    orig_cube = cube_from_array_and_cube(sat[::-1][None, ...], u)
+    con = iplt.pcolormesh(orig_cube[0], cmap='gray')
+
+    iplt.quiver(u[0, ::step, ::step], v[0, ::step, ::step])
+
+    theta_x, theta_y = (cube_from_array_and_cube(np.cos(np.deg2rad(90 - theta[::-1]))[None, ...], u),
+                        cube_from_array_and_cube(np.sin(np.deg2rad(90 - theta[::-1]))[None, ...], u))
+    iplt.quiver(theta_x[0, ::step, ::step], theta_y[0, ::step, ::step], color='r')
+    ax.gridlines(draw_labels=True)
+    ax.coastlines()
+    plt.colorbar(con, label='TOA reflectance', location='right')
