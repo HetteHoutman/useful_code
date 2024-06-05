@@ -25,8 +25,12 @@ def get_w_field_img(datetime, region, map_height=2000, leadtime=0, coord='altitu
     -------
 
     """
+    # this is not pretty but it's how i named the files
+    if leadtime == 0:
+        file = f'/storage/silver/metstudent/phd/sw825517/ukv_data/ukv_{datetime.strftime("%Y-%m-%d_%H")}_{leadtime:03.0f}.pp'
+    else:
+        file = f'/storage/silver/metstudent/phd/sw825517/ukv_data/ukv_{datetime.strftime("%Y-%m-%d_%H")}_{leadtime}.pp'
 
-    file = f'/storage/silver/metstudent/phd/sw825517/ukv_data/ukv_{datetime.strftime("%Y-%m-%d_%H")}_{leadtime:03.0f}.pp'
     sat_bl, sat_tr, map_bl, map_tr = get_sat_map_bltr(region, region_root=region_root)
     km_cube = create_km_cube(sat_bl, sat_tr)
 
